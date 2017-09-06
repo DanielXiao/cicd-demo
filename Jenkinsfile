@@ -3,7 +3,7 @@ pipeline {
   stages {
     stage('Checkout SCM') {
       steps {
-        git(url: 'git@github.com:DanielXiao/cicd-demo.git', branch: 'master', credentialsId: 'daniel-github', changelog: true, poll: true)
+        git(url: 'https://github.com/DanielXiao/cicd-demo.git', branch: 'master', credentialsId: 'github-token', changelog: true, poll: true)
       }
     }
     stage('Compile') {
