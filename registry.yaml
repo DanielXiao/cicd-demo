@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: myregistry
+  labels:
+    app: myregistry
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 5000
+  selector:
+    app: myregistry
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: myregistry
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: myregistry
+    spec:
+      containers:
+      - name: registry
+        image: registry:2.6.2
+        ports:
+        - containerPort: 5000
