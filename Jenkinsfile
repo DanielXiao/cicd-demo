@@ -1,44 +1,51 @@
-pipeline {
-  agent any
-  stages {
-    stage('Checkout SCM') {
-      steps {
-        git(url: 'https://github.com/DanielXiao/cicd-demo.git', branch: 'master', credentialsId: 'github-token', changelog: true, poll: true)
+podTemplate(label: 'cloud-native', containers: [
+    containerTemplate(name: 'jnlp', image: '10.250.131.118:5000/jenkinsci/jnlp-slave:2.62', args: '${computer.jnlpmac} ${computer.name}', workingDir: '/home/jenkins'),
+    containerTemplate(name: 'docker', image: '10.111.108.174:5000/docker', command: 'cat', ttyEnabled: true),
+    containerTemplate(name: 'kubectl', image: 'lachlanevenson/k8s-kubectl:v1.4.8', command: 'cat', ttyEnabled: true)
+],
+volumes:[
+    hostPathVolume(mountPath: '/var/run/docker.sock', hostPath: '/var/run/docker.sock'),
+]){
+
+  node ('cloud-native') {
+    //checkout scm
+    git(url: 'https://github.com/DanielXiao/cicd-demo.git', branch: 'master', credentialsId: 'github-token', changelog: true, poll: true)
+
+    stage ('Build image') {
+      container('docker') {
+        sh "docker info"
+        sh "docker version"
+        sh "ls -la /home/jenkins"
       }
     }
-    stage('Compile') {
-      steps {
-        sh 'echo "Dump step"'
+
+    stage ('Push image to registry') {
+      container('docker') {
+        sh "docker info"
+        sh "docker version"
+        sh "ls -la /home/jenkins"
       }
     }
-    stage('Integration Test') {
-      steps {
-        parallel(
-          "Integration Test": {
-            sh 'echo "Run integration tests"'
-            
-          },
-          "Load Test": {
-            sh 'echo "Run Load tests"'
-            
-          }
-        )
+
+    stage ('End to end testing') {
+      container('kubectl') {
+        sh "kubectl version"
+        sh "ls -la /home/jenkins"
       }
     }
-    stage('Publish image') {
+
+    stage('Manual approval') {
       steps {
-        sh 'echo "Publish image"'
+        input 'Approve to production?'
       }
     }
-    stage('Manual approve') {
-      steps {
-        input 'Approve to production'
+
+    stage ('Rolling update production') {
+      container('kubectl') {
+        sh "kubectl version"
+        sh "ls -la /home/jenkins"
       }
     }
-    stage('Rolling update production') {
-      steps {
-        sh 'echo "Update production"'
-      }
-    }
+
   }
 }
