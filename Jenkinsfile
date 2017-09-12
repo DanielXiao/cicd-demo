@@ -8,11 +8,12 @@ volumes:[
 ]){
 
   node ('cloud-native') {
-    //checkout scm
-    git(url: 'https://github.com/DanielXiao/cicd-demo.git', branch: 'master', credentialsId: 'github-token', changelog: true, poll: true)
+    checkout scm
+    //git(url: 'https://github.com/DanielXiao/cicd-demo.git', branch: 'master', credentialsId: 'github-token', changelog: true, poll: true)
 
     stage ('Build image') {
       container('docker') {
+        sh "sleep 600"
         sh "docker info"
         sh "docker version"
         sh "ls -la /home/jenkins"
