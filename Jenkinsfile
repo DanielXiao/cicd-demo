@@ -12,7 +12,6 @@ volumes:[
 
     stage ('Build image') {
       container('docker') {
-        sh "sleep 180"
         sh "docker info"
         sh "docker version"
         sh "ls -la /home/jenkins"
