@@ -5,7 +5,7 @@ podTemplate(label: 'cloud-native', containers: [
 ],
 volumes:[
     hostPathVolume(mountPath: '/var/run/docker.sock', hostPath: '/var/run/docker.sock'),
-    configMapVolume(mountPath: '/root/.kube', configMapName: 'kube-config')
+    configMapVolume(mountPath: '/home/jenkins/.kube', configMapName: 'kube-config')
 ]){
 
   node ('cloud-native') {
