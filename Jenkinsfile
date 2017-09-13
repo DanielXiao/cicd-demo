@@ -5,6 +5,7 @@ podTemplate(label: 'cloud-native', containers: [
 ],
 volumes:[
     hostPathVolume(mountPath: '/var/run/docker.sock', hostPath: '/var/run/docker.sock'),
+    configMapVolume(mountPath: '/root/.kube', configMapName: 'kube-config')
 ]){
 
   node ('cloud-native') {
@@ -27,14 +28,26 @@ volumes:[
     }
 
     stage ('End to end testing') {
-      container('kubectl') {
-        sh "kubectl version"
-        sh "ls -la /home/jenkins"
-      }
+      parallel (
+        'End to End test 1': {
+          container('kubectl') {
+            sh "kubectl create -f k8s-config/guestbook-e2e-1.yaml"
+            println "Do some testing"
+            sh "sleep 300"
+          }
+        },
+        'End to End test 2': {
+          container('kubectl') {
+            sh "kubectl create -f k8s-config/guestbook-e2e-2.yaml"
+            println "Do some testing"
+            sh "sleep 300"
+          }
+        }
+      )
     }
 
-    stage('Manual approval') {
-        input 'Approve to production?'
+    stage('Manual promotion') {
+        input 'Do you approve to promote build to production?'
     }
 
     stage ('Rolling update production') {

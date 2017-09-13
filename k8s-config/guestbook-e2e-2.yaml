@@ -1,0 +1,39 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-e2e-2
+  labels:
+    app: guestbook-e2e-2
+    tier: frontend
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 80
+  selector:
+    app: guestbook-e2e-2
+    tier: frontend
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: frontend-e2e-2
+spec:
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: guestbook-e2e-2
+        tier: frontend
+    spec:
+      containers:
+      - name: php-redis
+        image: 10.111.108.174:5000/google-samples/gb-frontend:v4
+        resources:
+          requests:
+            cpu: 100m
+            memory: 100Mi
+        env:
+        - name: GET_HOSTS_FROM
+          value: dns
+        ports:
+        - containerPort: 80
