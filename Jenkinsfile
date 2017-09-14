@@ -9,6 +9,10 @@ volumes:[
 ]){
 
   def image = "gb-frontend"
+  def imageURL = "10.250.131.118:5000/${image}:0.1.${env.BUILD_NUMBER}"
+  def engine = new groovy.text.SimpleTemplateEngine()
+  def binding1 = ["suffix":"e2e-1", "imageURL":"${imageURL}"]
+  def binding2 = ["suffix":"e2e-2", "imageURL":"${imageURL}"]
   node ('cloud-native') {
     git(url: 'https://github.com/DanielXiao/cicd-demo.git', branch: 'master', credentialsId: 'github-token', changelog: true, poll: true)
 
@@ -22,25 +26,34 @@ volumes:[
     stage ('Push image to registry') {
       container('docker') {
         sh "docker images"
-        sh "docker tag ${image}:0.1.${env.BUILD_NUMBER} 10.250.131.118:5000/${image}:0.1.${env.BUILD_NUMBER}"
-        sh "docker push 10.250.131.118:5000/${image}:0.1.${env.BUILD_NUMBER}"
+        sh "docker tag ${image}:0.1.${env.BUILD_NUMBER} ${imageURL}"
+        sh "docker push ${imageURL}"
       }
     }
 
     stage ('End to end testing') {
+      String k8sGuestBook = new File("${env.WORKSPACE}/k8s-config/guestbook-template.yaml").text
+      testbed1 = engine.createTemplate(k8sGuestBook).make(binding1).toString()
+      configFile1 = new File("${env.WORKSPACE}/guestbook-e2e-1.yaml")
+      configFile1 << testbed1
+      testbed2 = engine.createTemplate(k8sGuestBook).make(binding2).toString()
+      configFile2 = new File("${env.WORKSPACE}/guestbook-e2e-2.yaml")
+      configFile2 << testbed2
       parallel (
         'End to End test 1': {
           container('kubectl') {
-            sh "kubectl create -f k8s-config/guestbook-e2e-1.yaml"
-            sh "sleep 300 seconds for external load balancer"
+            println "Deploy testbed 1"
+            sh "kubectl create -f guestbook-e2e-1.yaml"
+            sh "sleep 300"
             println "Do some testing"
             sh "wget -qO- http://frontend-e2e-1"
           }
         },
         'End to End test 2': {
           container('kubectl') {
-            sh "kubectl create -f k8s-config/guestbook-e2e-2.yaml"
-            sh "sleep 300 seconds for external load balancer"
+            println "Deploy testbed 2"
+            sh "kubectl create -f guestbook-e2e-2.yaml"
+            sh "sleep 300"
             println "Do some testing"
             sh "wget -qO- http://frontend-e2e-2"
           }
