@@ -32,15 +32,17 @@ volumes:[
         'End to End test 1': {
           container('kubectl') {
             sh "kubectl create -f k8s-config/guestbook-e2e-1.yaml"
+            sh "sleep 300 seconds for external load balancer"
             println "Do some testing"
-            sh "sleep 300"
+            sh "wget -qO- http://frontend-e2e-1"
           }
         },
         'End to End test 2': {
           container('kubectl') {
             sh "kubectl create -f k8s-config/guestbook-e2e-2.yaml"
+            sh "sleep 300 seconds for external load balancer"
             println "Do some testing"
-            sh "sleep 300"
+            sh "wget -qO- http://frontend-e2e-2"
           }
         }
       )
