@@ -8,22 +8,22 @@ volumes:[
     configMapVolume(mountPath: '/home/jenkins/.kube', configMapName: 'kube-config')
 ]){
 
+  def image = "gb-frontend"
   node ('cloud-native') {
     git(url: 'https://github.com/DanielXiao/cicd-demo.git', branch: 'master', credentialsId: 'github-token', changelog: true, poll: true)
 
     stage ('Build image') {
       container('docker') {
-        sh "docker info"
-        sh "docker version"
-        sh "ls -la /home/jenkins"
+        sh "docker build -t ${image}:0.1.${env.BUILD_NUMBER} php-redis"
+        sh "docker images"
       }
     }
 
     stage ('Push image to registry') {
       container('docker') {
-        sh "docker info"
-        sh "docker version"
-        sh "ls -la /home/jenkins"
+        sh "docker images"
+        sh "docker tag ${image}:0.1.${env.BUILD_NUMBER} 10.250.131.118:5000/${image}:0.1.${env.BUILD_NUMBER}"
+        sh "docker push 10.250.131.118:5000/${image}:0.1.${env.BUILD_NUMBER}"
       }
     }
 
