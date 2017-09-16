@@ -8,7 +8,7 @@ volumes:[
     configMapVolume(mountPath: '/home/jenkins/.kube', configMapName: 'kube-config')
 ]){
 
-  def image = "gb-frontend"
+  def image = "guestbook/frontend"
   def tag = "${image}:0.1.${env.BUILD_NUMBER}"
   def imageURL = "10.250.131.118:5000/${tag}"
   node ('cloud-native') {
@@ -53,6 +53,7 @@ volumes:[
     stage('Manual promotion') {
         input 'Do you approve to promote build to production?'
         container('kubectl') {
+          println "Clean up test environments"
           sh "kubectl delete -f guestbook-e2e-1.yaml"
           sh "kubectl delete -f guestbook-e2e-2.yaml"
         }
