@@ -1,33 +1,33 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: frontend-${suffix}
+  name: frontend-{suffix}
   labels:
-    app: guestbook-${suffix}
+    app: guestbook-{suffix}
     tier: frontend
 spec:
   type: LoadBalancer
   ports:
   - port: 80
   selector:
-    app: guestbook-${suffix}
+    app: guestbook-{suffix}
     tier: frontend
 ---
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: frontend-${suffix}
+  name: frontend-{suffix}
 spec:
   replicas: 3
   template:
     metadata:
       labels:
-        app: guestbook-${suffix}
+        app: guestbook-{suffix}
         tier: frontend
     spec:
       containers:
       - name: php-redis
-        image: ${imageURL}
+        image: {image_url}
         resources:
           requests:
             cpu: 100m

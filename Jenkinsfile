@@ -10,7 +10,6 @@ volumes:[
 
   def image = "gb-frontend"
   def imageURL = "10.250.131.118:5000/${image}:0.1.${env.BUILD_NUMBER}"
-  def engine = new groovy.text.SimpleTemplateEngine()
   def binding1 = ["suffix":"e2e-1", "imageURL":"${imageURL}"]
   def binding2 = ["suffix":"e2e-2", "imageURL":"${imageURL}"]
   node ('cloud-native') {
@@ -32,19 +31,11 @@ volumes:[
     }
 
     stage ('End to end testing') {
-      String k8sGuestBook = new File("${env.WORKSPACE}/k8s-config/guestbook-template.yaml").text
-      testbed1 = engine.createTemplate(k8sGuestBook).make(binding1).toString()
-      configFile1 = new File("${env.WORKSPACE}/guestbook-e2e-1.yaml")
-      configFile1 << testbed1
-      testbed2 = engine.createTemplate(k8sGuestBook).make(binding2).toString()
-      configFile2 = new File("${env.WORKSPACE}/guestbook-e2e-2.yaml")
-      configFile2 << testbed2
       parallel (
         'End to End test 1': {
           container('kubectl') {
             println "Deploy testbed 1"
-            sh "kubectl create -f guestbook-e2e-1.yaml"
-            sh "sleep 300"
+            sh "python deploy_gb.py 'k8s-config/guestbook-template.yaml' 'e2e-1' '${imageURL}'"
             println "Do some testing"
             sh "wget -qO- http://frontend-e2e-1"
           }
@@ -52,8 +43,7 @@ volumes:[
         'End to End test 2': {
           container('kubectl') {
             println "Deploy testbed 2"
-            sh "kubectl create -f guestbook-e2e-2.yaml"
-            sh "sleep 300"
+            sh "python deploy_gb.py 'k8s-config/guestbook-template.yaml' 'e2e-1' '${imageURL}'"
             println "Do some testing"
             sh "wget -qO- http://frontend-e2e-2"
           }
@@ -63,6 +53,10 @@ volumes:[
 
     stage('Manual promotion') {
         input 'Do you approve to promote build to production?'
+        container('kubectl') {
+          sh "kubectl delete -f guestbook-e2e-1.yaml"
+          sh "kubectl delete -f guestbook-e2e-2.yaml"
+        }
     }
 
     stage ('Rolling update production') {
