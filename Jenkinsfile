@@ -23,7 +23,6 @@ volumes:[
 
     stage ('Push image to registry') {
       container('docker') {
-        sh "docker images"
         sh "docker tag ${tag} ${imageURL}"
         sh "docker push ${imageURL}"
       }
@@ -61,8 +60,9 @@ volumes:[
 
     stage ('Rolling update production') {
       container('kubectl') {
-        sh "kubectl version"
-        sh "ls -la /home/jenkins"
+        sh "kubectl set image deployment frontend-production php-redis=${imageURL} --record"
+        sh "kubectl get svc,deploy,rs,pod -o wide -l app=guestbook-production"
+        sh "kubectl rollout history deployment frontend-production"
       }
     }
 
