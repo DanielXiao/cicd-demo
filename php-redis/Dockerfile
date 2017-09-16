@@ -12,12 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM 10.250.131.118:5000/php:5-apache
-
-RUN apt-get update
-RUN apt-get install -y php-pear
-RUN pear channel-discover pear.nrk.io
-RUN pear install nrk/Predis
+FROM 10.250.131.118:5000/php:5-apache-1
 
 # If the container's stdio is connected to systemd-journald,
 # /proc/self/fd/{1,2} are Unix sockets and apache will not be able to open()

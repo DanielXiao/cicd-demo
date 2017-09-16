@@ -42,7 +42,7 @@ volumes:[
         'End to End test 2': {
           container('kubectl') {
             println "Deploy testbed 2"
-            sh "python deploy_gb.py 'k8s-config/guestbook-template.yaml' 'e2e-1' '${imageURL}'"
+            sh "python deploy_gb.py 'k8s-config/guestbook-template.yaml' 'e2e-2' '${imageURL}'"
             println "Do some testing"
             sh "wget -qO- http://frontend-e2e-2"
           }
